@@ -33,7 +33,7 @@
 
   <div id="info-card">
     <h3 id="title">Sistema Nervioso Central</h3>
-    <p id="desc">Toca o haz clic sobre cualquier estructura anatómica (Cerebro, Cerebelo, Tallo o Médula) para explorar su fisiología clínica.</p>
+    <p id="desc">Toca cualquier estructura anatómica (Cerebro, Cerebelo, Tallo o Médula) para explorar su fisiología clínica.</p>
   </div>
 
   <div class="controls-hint">
@@ -58,10 +58,8 @@
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
-    // Iluminación clínica avanzada
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    scene.add(ambientLight);
-
+    // Iluminación clínica
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
     const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
     mainLight.position.set(6, 12, 8);
     scene.add(mainLight);
@@ -70,134 +68,103 @@
     rimLight.position.set(-8, 5, -6);
     scene.add(rimLight);
 
-    const fillLight = new THREE.DirectionalLight(0xff477e, 0.4);
-    fillLight.position.set(0, -10, 4);
-    scene.add(fillLight);
-
-    // Grupo principal del SNC
     const sncGroup = new THREE.Group();
 
-    const createAnatomicMat = (colorHex) => new THREE.MeshPhysicalMaterial({
+    const mat = (colorHex) => new THREE.MeshPhysicalMaterial({
       color: colorHex,
       roughness: 0.25,
       metalness: 0.05,
-      transmission: 0.3,
+      transmission: 0.2,
       transparent: true,
       opacity: 0.95,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
-      reflectivity: 0.9
+      reflectivity: 0.8
     });
 
-    // 1. CEREBRO ANATÓMICO MULTILOBULAR (Composición orgánica de lóbulos)
+    // Cerebro orgánico compuesto (Hemisferios estilizados con alta suavidad)
     const brainGroup = new THREE.Group();
-    const brainMat = createAnatomicMat(0xff477e);
+    const bMat = mat(0xff477e);
 
-    // Lóbulo Frontal (Voluminoso y anterior)
-    const frontalGeo = new THREE.SphereGeometry(0.9, 32, 32);
-    frontalGeo.scale(1.2, 0.9, 1.1);
-    const frontalMesh = new THREE.Mesh(frontalGeo, brainMat);
-    frontalMesh.position.set(0, 0.1, 0.35);
-    brainGroup.add(frontalMesh);
-
-    // Lóbulos Parietal y Occipital (Posteriores y superiores)
-    const backGeo = new THREE.SphereGeometry(0.95, 32, 32);
-    backGeo.scale(1.15, 0.95, 1.1);
-    const backMesh = new THREE.Mesh(backGeo, brainMat);
-    backMesh.position.set(0, 0.15, -0.35);
-    brainGroup.add(backMesh);
-
-    // Lóbulos Temporales (Laterales izquierdo y derecho)
-    const temporalGeo = new THREE.SphereGeometry(0.65, 32, 32);
-    temporalGeo.scale(0.8, 0.6, 1.1);
+    const fGeom = new THREE.SphereGeometry(1.0, 32, 32); fGeom.scale(1.1, 0.85, 1.2);
+    const frontal = new THREE.Mesh(fGeom, bMat); frontal.position.set(0, 0, 0.2);
     
-    const tempLeft = new THREE.Mesh(temporalGeo, brainMat);
-    tempLeft.position.set(0.75, -0.2, 0.05);
-    tempLeft.rotation.z = -0.15;
-    brainGroup.add(tempLeft);
+    const tGeom = new THREE.SphereGeometry(0.65, 32, 32); tGeom.scale(0.8, 0.55, 1.0);
+    const temporalL = new THREE.Mesh(tGeom, bMat); temporalL.position.set(0.7, -0.2, 0);
+    const temporalR = new THREE.Mesh(tGeom, bMat); temporalR.position.set(-0.7, -0.2, 0);
 
-    const tempRight = new THREE.Mesh(temporalGeo, brainMat);
-    tempRight.position.set(-0.75, -0.2, 0.05);
-    tempRight.rotation.z = 0.15;
-    brainGroup.add(tempRight);
+    const oGeom = new THREE.SphereGeometry(0.75, 32, 32); oGeom.scale(1.0, 0.8, 0.9);
+    const occipital = new THREE.Mesh(oGeom, bMat); occipital.position.set(0, 0.1, -0.5);
 
-    brainGroup.position.set(0, 1.2, 0);
+    brainGroup.add(frontal, temporalL, temporalR, occipital);
+    brainGroup.position.set(0, 1.25, 0);
     brainGroup.userData = {
       name: "Cerebro (Hemisferios y Lóbulos)",
-      desc: "Centro integrador superior. Estructura multilobular que gestiona la cognición, el procesamiento sensorial, el lenguaje y la motricidad voluntaria."
+      desc: "Centro integrador superior. Gestiona funciones cognitivas, procesamiento sensorial, memoria y control motor voluntario."
     };
     sncGroup.add(brainGroup);
 
-    // 2. CEREBELO ANATÓMICO (Bilobulado con folias horizontales simuladas)
-    const cerebellumGeo = new THREE.SphereGeometry(0.58, 32, 32);
-    cerebellumGeo.scale(1.4, 0.65, 0.85);
-    const cerebellum = new THREE.Mesh(cerebellumGeo, createAnatomicMat(0xff9f43));
-    cerebellum.position.set(0, 0.4, -0.85);
+    // Cerebelo
+    const cbGeom = new THREE.SphereGeometry(0.55, 32, 32); cbGeom.scale(1.3, 0.65, 0.8);
+    const cerebellum = new THREE.Mesh(cbGeom, mat(0xff9f43));
+    cerebellum.position.set(0, 0.4, -0.8);
     cerebellum.userData = {
       name: "Cerebelo",
-      desc: "Ubicado en la fosa posterior. Integra vías sensitivas y motoras para coordinar la postura, el equilibrio y la precisión de los movimientos finos."
+      desc: "Regula el equilibrio, la postura corporal y la coordinación fina de los movimientos."
     };
     sncGroup.add(cerebellum);
 
-    // 3. TALLO CEREBRAL (Tronco encefálico con protuberancia anular)
-    const stemGeo = new THREE.CylinderGeometry(0.3, 0.22, 1.2, 32);
-    const brainStem = new THREE.Mesh(stemGeo, createAnatomicMat(0x00d2d3));
-    brainStem.position.set(0, 0.2, -0.15);
-    brainStem.rotation.x = 0.1;
-    brainStem.userData = {
-      name: "Tallo Cerebral (Tronco Encefálico)",
-      desc: "Compuesto por mesencéfalo, puente y bulbo raquídeo. Conecta el encéfalo con la médula y regula funciones autónomas vitales (respiración y ritmo cardíaco)."
+    // Tallo Cerebral
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.2, 1.1, 32), mat(0x00d2d3));
+    stem.position.set(0, 0.2, -0.15);
+    stem.userData = {
+      name: "Tallo Cerebral",
+      desc: "Conecta el encéfalo con la médula. Controla funciones autónomas vitales como la respiración y la frecuencia cardíaca."
     };
-    sncGroup.add(brainStem);
+    sncGroup.add(stem);
 
-    // 4. MÉDULA ESPINAL
-    const cordGeo = new THREE.CylinderGeometry(0.14, 0.11, 3.8, 32);
-    const spinalCord = new THREE.Mesh(cordGeo, createAnatomicMat(0x10ac84));
-    spinalCord.position.set(0, -1.85, -0.25);
-    spinalCord.userData = {
+    // Médula Espinal
+    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.11, 3.5, 32), mat(0x10ac84));
+    cord.position.set(0, -1.75, -0.25);
+    cord.userData = {
       name: "Médula Espinal",
-      desc: "Vía de conducción nerviosa central. Transmite impulsos sensitivos hacia el cerebro y respuestas motoras hacia el resto del cuerpo."
+      desc: "Conduce impulsos sensitivos hacia el encéfalo y respuestas motoras hacia el resto del cuerpo."
     };
-    sncGroup.add(spinalCord);
+    sncGroup.add(cord);
 
     scene.add(sncGroup);
 
-    // Sistema de interacción táctil
+    // Interacción táctil
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
     window.addEventListener('pointerdown', (e) => {
       mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(sncGroup.children, true);
 
       if (intersects.length > 0) {
-        let rootObj = intersects[0].object;
-        while (rootObj.parent && rootObj.parent !== sncGroup) {
-          rootObj = rootObj.parent;
-        }
-        
-        // Determinar nombre y descripción según el objeto seleccionado
-        let name = "Estructura del SNC";
-        let desc = "Información anatómica y clínica detallada.";
-        
-        if (rootObj === brainGroup) {
-          name = brainGroup.userData.name;
-          desc = brainGroup.userData.desc;
-        } else {
-          name = rootObj.userData.name;
-          desc = rootObj.userData.desc;
-        }
-
-        document.getElementById('title').innerText = name;
-        document.getElementById('desc').innerText = desc;
-
-        // Efecto visual de selección
+        let obj = intersects[0].object;
+        while (obj.parent && obj.parent !== sncGroup) { obj = obj.parent; }
+        document.getElementById('title').innerText = obj.userData.name || "Sistema Nervioso Central";
+        document.getElementById('desc').innerText = obj.userData.desc || "";
         sncGroup.children.forEach(c => c.scale.set(1, 1, 1));
-        rootObj.scale.set(1.06, 1.06, 1.06);
+        obj.scale.set(1.05, 1.05, 1.05);
       }
     });
 
     window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
