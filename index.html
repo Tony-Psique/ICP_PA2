@@ -43,7 +43,7 @@
     scene.fog = new THREE.FogExp2(0x020305, 0.02);
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(0, 0.2, 7.5);
+    camera.position.set(0, 0.4, 7.8);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -54,33 +54,34 @@
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
-    // Iluminación para resaltar textura y rugosidad tridimensional
-    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-    const kLight = new THREE.DirectionalLight(0xffffff, 1.0);
-    kLight.position.set(5, 8, 6);
+    // Iluminación clínica de alta definición para marcar contrastes y sombras en los surcos
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    
+    const kLight = new THREE.DirectionalLight(0xffffff, 1.3);
+    kLight.position.set(6, 12, 8);
     scene.add(kLight);
 
-    const rLight = new THREE.DirectionalLight(0x00f3ff, 0.8);
-    rLight.position.set(-6, 3, -4);
+    const rLight = new THREE.DirectionalLight(0x00f3ff, 0.9);
+    rLight.position.set(-7, 4, -5);
     scene.add(rLight);
 
-    const fillLight = new THREE.DirectionalLight(0xff477e, 0.35);
-    fillLight.position.set(0, -5, 3);
+    const fillLight = new THREE.DirectionalLight(0xff477e, 0.45);
+    fillLight.position.set(0, -6, 4);
     scene.add(fillLight);
 
     const sncGroup = new THREE.Group();
 
-    // Material sombreado realista, con textura orgánica, relieve (shininess) y translucidez (MeshStandardMaterial)
+    // Material avanzado con propiedades físicas para realzar las texturas corticales
     const getMaterial = (color) => new THREE.MeshStandardMaterial({
       color: color,
-      roughness: 0.65,
-      metalness: 0.1,
-      bumpScale: 0.05
+      roughness: 0.45,
+      metalness: 0.15,
+      flatShading: false
     });
 
-    // 1. CEREBRO ANATÓMICO (Alta Densidad, pliegues corticales complejos e hendiduras realistas)
-    const brainGeo = new THREE.SphereGeometry(1.2, 80, 80);
-    brainGeo.scale(1.15, 0.88, 1.35); // Proporción exacta en los tres ejes
+    // 1. CEREBRO ANATÓMICO (Con algoritmo avanzado de circunvoluciones y cisuras profundas)
+    const brainGeo = new THREE.SphereGeometry(1.2, 96, 96);
+    brainGeo.scale(1.18, 0.82, 1.35);
 
     const bPos = brainGeo.attributes.position;
     for (let i = 0; i < bPos.count; i++) {
@@ -88,32 +89,33 @@
       let y = bPos.getY(i);
       let z = bPos.getZ(i);
 
-      // Fisura interhemisférica (Hendidura que separa los hemisferios)
-      if (Math.abs(x) < 0.2 && y > -0.15) {
-        x *= 0.35;
+      // Fisura interhemisférica central más marcada
+      if (Math.abs(x) < 0.28 && y > -0.1) {
+        x *= 0.25;
       }
 
-      // Algoritmo de generación de circunvoluciones (gyri) y surcos corticales complejos (sulci)
-      const gyrus = Math.sin(x * 12) * Math.cos(y * 14) * Math.sin(z * 11);
-      const subGyrus = Math.sin(x * 24 + z * 24) * Math.cos(y * 24) * 0.28;
+      // Patrón cortical de alta fidelidad (Sulci y Gyri detallados)
+      const primaryFold = Math.sin(x * 10) * Math.cos(y * 12) * Math.sin(z * 10);
+      const secondaryFold = Math.sin(x * 25 + z * 25) * Math.cos(y * 22) * 0.3;
+      const microDetail = Math.sin(x * 45) * Math.cos(z * 45) * 0.08;
       
-      const factor = 1 + (gyrus * 0.045) + (subGyrus * 0.015);
+      const factor = 1 + (primaryFold * 0.055) + (secondaryFold * 0.018) + (microDetail * 0.005);
 
       bPos.setXYZ(i, x * factor, y * factor, z * factor);
     }
     brainGeo.computeVertexNormals();
 
-    const cerebrum = new THREE.Mesh(brainGeo, getMaterial(0xeb4d4b));
-    cerebrum.position.set(0, 1.15, 0);
+    const cerebrum = new THREE.Mesh(brainGeo, getMaterial(0xbd3b5d));
+    cerebrum.position.set(0, 1.12, 0);
     cerebrum.userData = {
       name: "Cerebro (Hemisferios y Lóbulos)",
       desc: "Presenta surcos y circunvoluciones complejas. Integra funciones cognitivas, sensoriales, la memoria, el lenguaje y los movimientos voluntarios."
     };
     sncGroup.add(cerebrum);
 
-    // 2. CEREBELO (Con estrías horizontales naturales y forma aplanada)
-    const cbGeo = new THREE.SphereGeometry(0.55, 48, 48);
-    cbGeo.scale(1.35, 0.58, 0.82);
+    // 2. CEREBELO (Con estrías horizontales detalladas en la fosa posterior)
+    const cbGeo = new THREE.SphereGeometry(0.55, 64, 64);
+    cbGeo.scale(1.35, 0.55, 0.82);
 
     const cbPos = cbGeo.attributes.position;
     for (let i = 0; i < cbPos.count; i++) {
@@ -121,35 +123,32 @@
       let y = cbPos.getY(i);
       let z = cbPos.getZ(i);
 
-      // Foliación horizontal característica (Pliegues muy finos horizontales)
-      const folia = Math.sin(y * 42) * 0.022;
+      const folia = Math.sin(y * 55) * 0.028 + Math.cos(x * 35) * 0.01;
       cbPos.setXYZ(i, x * (1 + folia), y * (1 + folia), z * (1 + folia));
     }
     cbGeo.computeVertexNormals();
 
-    const cerebellum = new THREE.Mesh(cbGeo, getMaterial(0xf0932b));
-    cerebellum.position.set(0, 0.24, -0.65); // Ajuste de posición posterior, encajado bajo el lóbulo occipital
+    const cerebellum = new THREE.Mesh(cbGeo, getMaterial(0xd35400));
+    cerebellum.position.set(0, 0.22, -0.68);
     cerebellum.userData = {
       name: "Cerebelo",
       desc: "Situado en la fosa posterior. Regula la coordinación, la precisión motora fina, el equilibrio y la postura corporal."
     };
     sncGroup.add(cerebellum);
 
-    // 3. TALLO CEREBRAL (Mesencéfalo, Puente de Varolio y Bulbo Raquídeo)
+    // 3. TALLO CEREBRAL (Puente y tronco integrados anatómicamente)
     const stemGroup = new THREE.Group();
-    const stemMat = getMaterial(0x00a8ff);
+    const stemMat = getMaterial(0x0097e6);
 
-    // Protuberancia (Puente de Varolio, con su abultamiento anterior anatómico)
     const ponsGeo = new THREE.SphereGeometry(0.32, 32, 32);
-    ponsGeo.scale(0.85, 0.7, 0.9);
+    ponsGeo.scale(0.85, 0.65, 0.85);
     const pons = new THREE.Mesh(ponsGeo, stemMat);
-    pons.position.set(0, 0.28, -0.1);
+    pons.position.set(0, 0.24, -0.1);
     stemGroup.add(pons);
 
-    // Tallo (Mesencéfalo superior y bulbo raquídeo inferior conectando a médula)
-    const bulkGeo = new THREE.CylinderGeometry(0.24, 0.17, 1.0, 32);
+    const bulkGeo = new THREE.CylinderGeometry(0.22, 0.16, 0.95, 32);
     const bulk = new THREE.Mesh(bulkGeo, stemMat);
-    bulk.position.set(0, 0.02, -0.15);
+    bulk.position.set(0, -0.04, -0.14);
     bulk.rotation.x = 0.06;
     stemGroup.add(bulk);
 
@@ -159,16 +158,18 @@
     };
     sncGroup.add(stemGroup);
 
-    // 4. MÉDULA ESPINAL (Largo, continuo y alineado inferiormente)
-    const cordGeo = new THREE.CylinderGeometry(0.12, 0.09, 3.2, 32);
-    const cord = new THREE.Mesh(cordGeo, getMaterial(0x2ed573));
-    cord.position.set(0, -1.65, -0.17);
+    // 4. MÉDULA ESPINAL
+    const cordGeo = new THREE.CylinderGeometry(0.11, 0.08, 3.3, 32);
+    const cord = new THREE.Mesh(cordGeo, getMaterial(0x009432));
+    cord.position.set(0, -1.7, -0.18);
     cord.userData = {
       name: "Médula Espinal",
       desc: "Cordón nervioso continuo que desciende por el canal vertebral. Conduce información sensitiva hacia el encéfalo e impulsos motores hacia el cuerpo."
     };
     sncGroup.add(cord);
 
+    // Rotación inicial general para que se aprecie de perfil anatómico perfecto
+    sncGroup.rotation.y = -0.3;
     scene.add(sncGroup);
 
     // Interacción táctil
@@ -189,7 +190,6 @@
         document.getElementById('title').innerText = rootObj.userData.name || "Estructura del SNC";
         document.getElementById('desc').innerText = rootObj.userData.desc || "";
 
-        // Efecto visual sutil de interactividad
         sncGroup.children.forEach(c => c.scale.set(1,1,1));
         rootObj.scale.set(1.025, 1.025, 1.025);
       }
