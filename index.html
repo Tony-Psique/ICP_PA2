@@ -53,7 +53,6 @@
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
 
-    // Iluminación
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
@@ -65,10 +64,8 @@
     light2.position.set(-5, -5, -5);
     scene.add(light2);
 
-    // Grupo contenedor del SNC
     const sncGroup = new THREE.Group();
 
-    // Materiales
     const createMat = (color) => new THREE.MeshPhongMaterial({ color, roughness: 0.3, shininess: 40 });
     
     // 1. CEREBRO
@@ -76,3 +73,74 @@
     brainGeo.scale(1.2, 0.95, 1.1);
     const cerebrum = new THREE.Mesh(brainGeo, createMat(0xff7597));
     cerebrum.position.set(0, 2.2, 0);
+    cerebrum.userData = {
+      name: "Cerebro (Hemisferios)",
+      desc: "Procesa información sensorial, controla movimientos voluntarios, el pensamiento consciente, la memoria y la toma de decisiones."
+    };
+    sncGroup.add(cerebrum);
+
+    // 2. CEREBELO
+    const cerebellumGeo = new THREE.SphereGeometry(0.7, 32, 32);
+    cerebellumGeo.scale(1.1, 0.75, 0.85);
+    const cerebellum = new THREE.Mesh(cerebellumGeo, createMat(0xff9f43));
+    cerebellum.position.set(0, 1.1, -0.75);
+    cerebellum.userData = {
+      name: "Cerebelo",
+      desc: "Ubicado en la parte posterior inferior. Regula el equilibrio, la postura corporal y la coordinación fina de los movimientos."
+    };
+    sncGroup.add(cerebellum);
+
+    // 3. TALLO CEREBRAL
+    const stemGeo = new THREE.CylinderGeometry(0.38, 0.28, 1.2, 32);
+    const brainStem = new THREE.Mesh(stemGeo, createMat(0x00d2ff));
+    brainStem.position.set(0, 1.2, -0.1);
+    brainStem.userData = {
+      name: "Tallo Cerebral (Tronco Encefálico)",
+      desc: "Conecta el encéfalo con la médula espinal. Regula funciones vitales involuntarias como el ritmo cardíaco, la respiración y la presión arterial."
+    };
+    sncGroup.add(brainStem);
+
+    // 4. MÉDULA ESPINAL
+    const cordGeo = new THREE.CylinderGeometry(0.22, 0.18, 4.2, 32);
+    const spinalCord = new THREE.Mesh(cordGeo, createMat(0x10ac84));
+    spinalCord.position.set(0, -1.5, -0.1);
+    spinalCord.userData = {
+      name: "Médula Espinal",
+      desc: "Cordón nervioso protegido por la columna vertebral. Conduce los impulsos sensitivos hacia el encéfalo y las respuestas motoras hacia el cuerpo."
+    };
+    sncGroup.add(spinalCord);
+
+    scene.add(sncGroup);
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    window.addEventListener('pointerdown', (e) => {
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerWidth) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(sncGroup.children);
+
+      if (intersects.length > 0) {
+        const obj = intersects[0].object;
+        document.getElementById('title').innerText = obj.userData.name;
+        document.getElementById('desc').innerText = obj.userData.desc;
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
