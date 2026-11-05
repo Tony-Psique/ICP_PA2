@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema Nervioso Central - Anatomía Exacta</title>
+  <title>Sistema Nervioso Central - Anatomía Real</title>
   <style>
     body { margin: 0; overflow: hidden; background: #030508; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff; }
     #canvas-container { width: 100vw; height: 100vh; }
@@ -40,14 +40,14 @@
 
   <div id="loading-screen">
     <div class="spinner"></div>
-    <div id="load-status">Cargando modelo anatómico 3D...</div>
+    <div id="load-status">Conectando con el servidor 3D...</div>
   </div>
 
   <div id="canvas-container"></div>
 
   <div id="info-card">
-    <h3 id="title">Sistema Nervioso Central</h3>
-    <p id="desc">Modelo anatómico tridimensional de alta precisión. Toca o arrastra para rotar la maqueta.</p>
+    <h3 id="title">Sistema Nervioso Central (Anatomía Real)</h3>
+    <p id="desc">Estructura tridimensional detallada. Toca y arrastra para explorar la maqueta desde cualquier ángulo.</p>
   </div>
 
   <div class="controls-hint">Rotar: Arrastrar | Zoom: Pellizcar pantalla</div>
@@ -56,60 +56,81 @@
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x030508);
+    scene.fog = new THREE.FogExp2(0x030508, 0.015);
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 0, 5);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
 
-    // Iluminación médica
-    scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-    const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    mainLight.position.set(5, 10, 7);
-    scene.add(mainLight);
+    // Iluminación clínica de estudio avanzado
+    scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+    
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.3);
+    keyLight.position.set(5, 10, 7);
+    scene.add(keyLight);
 
+    const rimLight = new THREE.DirectionalLight(0x00f3ff, 1.0);
+    rimLight.position.set(-6, 5, -5);
+    scene.add(rimLight);
+
+    const fillLight = new THREE.DirectionalLight(0xff477e, 0.4);
+    fillLight.position.set(0, -8, 4);
+    scene.add(fillLight);
+
+    let brainModel = null;
     const loader = new THREE.GLTFLoader();
 
-    // Enlace directo al modelo 3D real alojado en repositorio público de modelos Three.js
-    const modelUrl = 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb'; 
-
-    // Usaremos un modelo 3D de alta precisión anatómica del cerebro cargado desde CDN
+    // Enlace optimizado mediante CDN público libre de bloqueos CORS
     const brainUrl = 'https://cdn.jsdelivr.net/gh/baronwatts/threejs-brain@master/brain.glb';
 
     loader.load(
       brainUrl,
       function (gltf) {
-        const model = gltf.scene;
+        brainModel = gltf.scene;
 
-        // Centrado y escala de la estructura real
-        const box = new THREE.Box3().setFromObject(model);
+        // Centrado y escala automática
+        const box = new THREE.Box3().setFromObject(brainModel);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
 
-        model.position.x -= center.x;
-        model.position.y -= center.y;
-        model.position.z -= center.z;
+        brainModel.position.x -= center.x;
+        brainModel.position.y -= center.y;
+        brainModel.position.z -= center.z;
 
         const maxDim = Math.max(size.x, size.y, size.z);
         const scale = 2.8 / maxDim;
-        model.scale.set(scale, scale, scale);
+        brainModel.scale.set(scale, scale, scale);
 
-        scene.add(model);
+        // Aplicar material clínico con relieve y definición anatómica
+        brainModel.traverse((child) => {
+          if (child.isMesh) {
+            child.material = new THREE.MeshStandardMaterial({
+              color: 0xdb5870,
+              roughness: 0.35,
+              metalness: 0.15
+            });
+          }
+        });
+
+        scene.add(brainModel);
         document.getElementById('loading-screen').style.display = 'none';
       },
       function (xhr) {
         if (xhr.total > 0) {
           const percent = Math.round((xhr.loaded / xhr.total) * 100);
-          document.getElementById('load-status').innerText = `Cargando anatomía real... ${percent}%`;
+          document.getElementById('load-status').innerText = `Descargando modelo real... ${percent}%`;
         }
       },
       function (error) {
+        console.error(error);
         document.getElementById('load-status').innerText = 'Error al cargar el archivo 3D.';
       }
     );
