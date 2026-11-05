@@ -45,7 +45,7 @@
     scene.fog = new THREE.FogExp2(0x030508, 0.025);
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 0.4, 7.5);
+    camera.position.set(0, 0.2, 7.8);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -56,7 +56,7 @@
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
-    // Iluminación clínica avanzada
+    // Iluminación clínica de estudio
     scene.add(new THREE.AmbientLight(0xffffff, 0.8));
     
     const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
@@ -73,7 +73,7 @@
 
     const sncGroup = new THREE.Group();
 
-    // Material translúcido clínico tipo PBR avanzado
+    // Material translúcido clínico
     const createMat = (hex) => new THREE.MeshPhysicalMaterial({
       color: hex,
       roughness: 0.25,
@@ -85,9 +85,9 @@
       reflectivity: 0.9
     });
 
-    // 1. CEREBRO ANATÓMICO (Hemisferios con pliegues corticales modelados)
+    // 1. CEREBRO (Hemisferios con pliegues corticales)
     const brainGeo = new THREE.SphereGeometry(1.2, 48, 48);
-    brainGeo.scale(1.15, 0.85, 1.3);
+    brainGeo.scale(1.15, 0.82, 1.3);
     
     const bPos = brainGeo.attributes.position;
     for (let i = 0; i < bPos.count; i++) {
@@ -99,33 +99,22 @@
     brainGeo.computeVertexNormals();
 
     const cerebrum = new THREE.Mesh(brainGeo, createMat(0xff477e));
-    cerebrum.position.set(0, 1.15, 0);
+    cerebrum.position.set(0, 1.1, 0);
     cerebrum.userData = {
       name: "Cerebro (Hemisferios y Lóbulos)",
       desc: "Centro integrador superior. Gestiona funciones cognitivas, procesamiento sensorial, memoria y control motor voluntario."
     };
     sncGroup.add(cerebrum);
 
-    // 2. CEREBELO
-    const cbGeo = new THREE.SphereGeometry(0.58, 32, 32);
-    cbGeo.scale(1.35, 0.6, 0.85);
-    const cerebellum = new THREE.Mesh(cbGeo, createMat(0xff9f43));
-    cerebellum.position.set(0, 0.3, -0.75);
-    cerebellum.userData = {
-      name: "Cerebelo",
-      desc: "Ubicado en la fosa posterior. Regula el equilibrio, la postura corporal y la coordinación fina de los movimientos."
-    };
-    sncGroup.add(cerebellum);
-
-    // 3. TALLO CEREBRAL
+    // 2. TALLO CEREBRAL (Eje central alineado correctamente)
     const stemGroup = new THREE.Group();
-    const pons = new THREE.Mesh(new THREE.SphereGeometry(0.35, 24, 24), createMat(0x00d2d3));
-    pons.scale.set(0.9, 0.7, 0.85);
-    pons.position.set(0, 0.3, -0.12);
+    const pons = new THREE.Mesh(new THREE.SphereGeometry(0.32, 24, 24), createMat(0x00d2d3));
+    pons.scale.set(0.85, 0.65, 0.8);
+    pons.position.set(0, 0.22, -0.08);
     
-    const stemBody = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.18, 1.1, 24), createMat(0x00d2d3));
-    stemBody.position.set(0, 0.1, -0.18);
-    stemBody.rotation.x = 0.08;
+    const stemBody = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.16, 1.0, 24), createMat(0x00d2d3));
+    stemBody.position.set(0, -0.05, -0.12);
+    stemBody.rotation.x = 0.05;
     
     stemGroup.add(pons, stemBody);
     stemGroup.userData = {
@@ -134,9 +123,20 @@
     };
     sncGroup.add(stemGroup);
 
+    // 3. CEREBELO (Posicionado limpiamente en la fosa posterior, detrás del tallo y bajo el cerebro)
+    const cbGeo = new THREE.SphereGeometry(0.52, 32, 32);
+    cbGeo.scale(1.3, 0.55, 0.75);
+    const cerebellum = new THREE.Mesh(cbGeo, createMat(0xff9f43));
+    cerebellum.position.set(0, 0.18, -0.58);
+    cerebellum.userData = {
+      name: "Cerebelo",
+      desc: "Ubicado en la fosa posterior. Regula el equilibrio, la postura corporal y la coordinación fina de los movimientos."
+    };
+    sncGroup.add(cerebellum);
+
     // 4. MÉDULA ESPINAL
-    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.09, 3.0, 24), createMat(0x10ac84));
-    cord.position.set(0, -1.55, -0.22);
+    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.08, 3.2, 24), createMat(0x10ac84));
+    cord.position.set(0, -1.65, -0.15);
     cord.userData = {
       name: "Médula Espinal",
       desc: "Conduce los impulsos nerviosos entre el encéfalo y el resto del cuerpo."
