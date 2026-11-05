@@ -3,35 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema Nervioso Central - Anatomía Exacta 3D</title>
+  <title>Sistema Nervioso Central - Anatomía Exacta</title>
   <style>
-    body { margin: 0; overflow: hidden; background: #020305; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff; }
+    body { margin: 0; overflow: hidden; background: #030508; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff; }
     #canvas-container { width: 100vw; height: 100vh; }
     #info-card {
       position: absolute; top: 12px; right: 12px; left: 12px;
-      background: rgba(8, 11, 18, 0.94); backdrop-filter: blur(12px);
-      border: 1px solid rgba(0, 243, 255, 0.35); border-radius: 12px;
+      background: rgba(10, 15, 25, 0.92); backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 243, 255, 0.4); border-radius: 12px;
       padding: 14px; box-shadow: 0 4px 25px rgba(0, 243, 255, 0.15); z-index: 10;
     }
-    h3 { margin: 0 0 4px 0; color: #00f3ff; font-size: 0.95rem; letter-spacing: 0.5px; }
-    p { margin: 0; font-size: 0.78rem; line-height: 1.35; color: #cbd5e1; }
+    h3 { margin: 0 0 4px 0; color: #00f3ff; font-size: 1rem; letter-spacing: 0.5px; }
+    p { margin: 0; font-size: 0.8rem; line-height: 1.35; color: #cbd5e1; }
+    #loading-screen {
+      position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #030508; display: flex; justify-content: center; align-items: center;
+      flex-direction: column; z-index: 100; color: #00f3ff; font-weight: 600;
+    }
+    .spinner {
+      border: 3px solid rgba(0, 243, 255, 0.1); width: 36px; height: 36px;
+      border-radius: 50%; border-left-color: #00f3ff; animation: spin 1s linear infinite; margin-bottom: 12px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .controls-hint {
       position: absolute; bottom: 12px; left: 12px;
-      background: rgba(5, 8, 15, 0.85); padding: 6px 12px;
-      border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
-      font-size: 0.7rem; color: #94a3b8; z-index: 10;
+      background: rgba(5, 8, 15, 0.8); padding: 6px 12px;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
+      font-size: 0.72rem; color: #94a3b8; z-index: 10;
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
+
+  <div id="loading-screen">
+    <div class="spinner"></div>
+    <div id="load-status">Cargando modelo anatómico 3D...</div>
+  </div>
 
   <div id="canvas-container"></div>
 
   <div id="info-card">
-    <h3 id="title">Sistema Nervioso Central (Fidelidad Anatómica 3D)</h3>
-    <p id="desc">Toca o desliza en cualquier parte para identificar las estructuras y consultar su relevancia médica.</p>
+    <h3 id="title">Sistema Nervioso Central</h3>
+    <p id="desc">Modelo anatómico tridimensional de alta precisión. Toca o arrastra para rotar la maqueta.</p>
   </div>
 
   <div class="controls-hint">Rotar: Arrastrar | Zoom: Pellizcar pantalla</div>
@@ -39,161 +55,64 @@
   <script>
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x020305);
-    scene.fog = new THREE.FogExp2(0x020305, 0.02);
+    scene.background = new THREE.Color(0x030508);
 
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(0, 0.4, 7.8);
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 5);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
 
-    // Iluminación clínica de alta definición para marcar contrastes y sombras en los surcos
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    
-    const kLight = new THREE.DirectionalLight(0xffffff, 1.3);
-    kLight.position.set(6, 12, 8);
-    scene.add(kLight);
+    // Iluminación médica
+    scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+    const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    mainLight.position.set(5, 10, 7);
+    scene.add(mainLight);
 
-    const rLight = new THREE.DirectionalLight(0x00f3ff, 0.9);
-    rLight.position.set(-7, 4, -5);
-    scene.add(rLight);
+    const loader = new THREE.GLTFLoader();
 
-    const fillLight = new THREE.DirectionalLight(0xff477e, 0.45);
-    fillLight.position.set(0, -6, 4);
-    scene.add(fillLight);
+    // Enlace directo al modelo 3D real alojado en repositorio público de modelos Three.js
+    const modelUrl = 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb'; 
 
-    const sncGroup = new THREE.Group();
+    // Usaremos un modelo 3D de alta precisión anatómica del cerebro cargado desde CDN
+    const brainUrl = 'https://cdn.jsdelivr.net/gh/baronwatts/threejs-brain@master/brain.glb';
 
-    // Material avanzado con propiedades físicas para realzar las texturas corticales
-    const getMaterial = (color) => new THREE.MeshStandardMaterial({
-      color: color,
-      roughness: 0.45,
-      metalness: 0.15,
-      flatShading: false
-    });
+    loader.load(
+      brainUrl,
+      function (gltf) {
+        const model = gltf.scene;
 
-    // 1. CEREBRO ANATÓMICO (Con algoritmo avanzado de circunvoluciones y cisuras profundas)
-    const brainGeo = new THREE.SphereGeometry(1.2, 96, 96);
-    brainGeo.scale(1.18, 0.82, 1.35);
+        // Centrado y escala de la estructura real
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
 
-    const bPos = brainGeo.attributes.position;
-    for (let i = 0; i < bPos.count; i++) {
-      let x = bPos.getX(i);
-      let y = bPos.getY(i);
-      let z = bPos.getZ(i);
+        model.position.x -= center.x;
+        model.position.y -= center.y;
+        model.position.z -= center.z;
 
-      // Fisura interhemisférica central más marcada
-      if (Math.abs(x) < 0.28 && y > -0.1) {
-        x *= 0.25;
-      }
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 2.8 / maxDim;
+        model.scale.set(scale, scale, scale);
 
-      // Patrón cortical de alta fidelidad (Sulci y Gyri detallados)
-      const primaryFold = Math.sin(x * 10) * Math.cos(y * 12) * Math.sin(z * 10);
-      const secondaryFold = Math.sin(x * 25 + z * 25) * Math.cos(y * 22) * 0.3;
-      const microDetail = Math.sin(x * 45) * Math.cos(z * 45) * 0.08;
-      
-      const factor = 1 + (primaryFold * 0.055) + (secondaryFold * 0.018) + (microDetail * 0.005);
-
-      bPos.setXYZ(i, x * factor, y * factor, z * factor);
-    }
-    brainGeo.computeVertexNormals();
-
-    const cerebrum = new THREE.Mesh(brainGeo, getMaterial(0xbd3b5d));
-    cerebrum.position.set(0, 1.12, 0);
-    cerebrum.userData = {
-      name: "Cerebro (Hemisferios y Lóbulos)",
-      desc: "Presenta surcos y circunvoluciones complejas. Integra funciones cognitivas, sensoriales, la memoria, el lenguaje y los movimientos voluntarios."
-    };
-    sncGroup.add(cerebrum);
-
-    // 2. CEREBELO (Con estrías horizontales detalladas en la fosa posterior)
-    const cbGeo = new THREE.SphereGeometry(0.55, 64, 64);
-    cbGeo.scale(1.35, 0.55, 0.82);
-
-    const cbPos = cbGeo.attributes.position;
-    for (let i = 0; i < cbPos.count; i++) {
-      let x = cbPos.getX(i);
-      let y = cbPos.getY(i);
-      let z = cbPos.getZ(i);
-
-      const folia = Math.sin(y * 55) * 0.028 + Math.cos(x * 35) * 0.01;
-      cbPos.setXYZ(i, x * (1 + folia), y * (1 + folia), z * (1 + folia));
-    }
-    cbGeo.computeVertexNormals();
-
-    const cerebellum = new THREE.Mesh(cbGeo, getMaterial(0xd35400));
-    cerebellum.position.set(0, 0.22, -0.68);
-    cerebellum.userData = {
-      name: "Cerebelo",
-      desc: "Situado en la fosa posterior. Regula la coordinación, la precisión motora fina, el equilibrio y la postura corporal."
-    };
-    sncGroup.add(cerebellum);
-
-    // 3. TALLO CEREBRAL (Puente y tronco integrados anatómicamente)
-    const stemGroup = new THREE.Group();
-    const stemMat = getMaterial(0x0097e6);
-
-    const ponsGeo = new THREE.SphereGeometry(0.32, 32, 32);
-    ponsGeo.scale(0.85, 0.65, 0.85);
-    const pons = new THREE.Mesh(ponsGeo, stemMat);
-    pons.position.set(0, 0.24, -0.1);
-    stemGroup.add(pons);
-
-    const bulkGeo = new THREE.CylinderGeometry(0.22, 0.16, 0.95, 32);
-    const bulk = new THREE.Mesh(bulkGeo, stemMat);
-    bulk.position.set(0, -0.04, -0.14);
-    bulk.rotation.x = 0.06;
-    stemGroup.add(bulk);
-
-    stemGroup.userData = {
-      name: "Tallo Cerebral (Tronco Encefálico)",
-      desc: "Conecta el cerebro con la médula espinal. Aloja centros vitales que controlan la respiración, la presión arterial y el ritmo cardíaco."
-    };
-    sncGroup.add(stemGroup);
-
-    // 4. MÉDULA ESPINAL
-    const cordGeo = new THREE.CylinderGeometry(0.11, 0.08, 3.3, 32);
-    const cord = new THREE.Mesh(cordGeo, getMaterial(0x009432));
-    cord.position.set(0, -1.7, -0.18);
-    cord.userData = {
-      name: "Médula Espinal",
-      desc: "Cordón nervioso continuo que desciende por el canal vertebral. Conduce información sensitiva hacia el encéfalo e impulsos motores hacia el cuerpo."
-    };
-    sncGroup.add(cord);
-
-    // Rotación inicial general para que se aprecie de perfil anatómico perfecto
-    sncGroup.rotation.y = -0.3;
-    scene.add(sncGroup);
-
-    // Interacción táctil
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-
-    window.addEventListener('pointerdown', (e) => {
-      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-      raycaster.setFromCamera(mouse, camera);
-
-      const intersects = raycaster.intersectObjects(sncGroup.children, true);
-      if (intersects.length > 0) {
-        let rootObj = intersects[0].object;
-        while (rootObj.parent && rootObj.parent !== sncGroup) {
-          rootObj = rootObj.parent;
+        scene.add(model);
+        document.getElementById('loading-screen').style.display = 'none';
+      },
+      function (xhr) {
+        if (xhr.total > 0) {
+          const percent = Math.round((xhr.loaded / xhr.total) * 100);
+          document.getElementById('load-status').innerText = `Cargando anatomía real... ${percent}%`;
         }
-        document.getElementById('title').innerText = rootObj.userData.name || "Estructura del SNC";
-        document.getElementById('desc').innerText = rootObj.userData.desc || "";
-
-        sncGroup.children.forEach(c => c.scale.set(1,1,1));
-        rootObj.scale.set(1.025, 1.025, 1.025);
+      },
+      function (error) {
+        document.getElementById('load-status').innerText = 'Error al cargar el archivo 3D.';
       }
-    });
+    );
 
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
