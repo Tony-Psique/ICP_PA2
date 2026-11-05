@@ -130,4 +130,48 @@
     sncGroup.add(brainStem);
 
     // 4. MÉDULA ESPINAL
-    const cordGeo = new THREE.CylinderGeometry(0.16, 0.1
+    const cordGeo = new THREE.CylinderGeometry(0.16, 0.12, 3.8, 32);
+    const spinalCord = new THREE.Mesh(cordGeo, createAnatomicMat(0x10ac84));
+    spinalCord.position.set(0, -1.85, -0.25);
+    spinalCord.userData = {
+      name: "Médula Espinal",
+      desc: "Conduce impulsos sensitivos hacia el encéfalo y respuestas motoras hacia el cuerpo."
+    };
+    sncGroup.add(spinalCord);
+
+    scene.add(sncGroup);
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    window.addEventListener('pointerdown', (e) => {
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(sncGroup.children);
+
+      if (intersects.length > 0) {
+        const obj = intersects[0].object;
+        document.getElementById('title').innerText = obj.userData.name;
+        document.getElementById('desc').innerText = obj.userData.desc;
+        sncGroup.children.forEach(c => c.scale.set(1, 1, 1));
+        obj.scale.multiplyScalar(1.06);
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
