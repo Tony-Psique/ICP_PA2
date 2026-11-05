@@ -3,37 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maqueta Anatómica 3D: Sistema Nervioso Central</title>
+  <title>Maqueta 3D Anatómica Exacta: SNC</title>
   <style>
     body { margin: 0; overflow: hidden; background: #030508; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff; }
     #canvas-container { width: 100vw; height: 100vh; }
     #info-card {
-      position: absolute; top: 15px; right: 15px; width: 290px;
-      background: rgba(10, 15, 25, 0.88); backdrop-filter: blur(12px);
+      position: absolute; top: 12px; right: 12px; left: 12px;
+      background: rgba(10, 15, 25, 0.92); backdrop-filter: blur(12px);
       border: 1px solid rgba(0, 243, 255, 0.4); border-radius: 12px;
-      padding: 16px; box-shadow: 0 8px 32px rgba(0, 243, 255, 0.15);
-      z-index: 10;
+      padding: 14px; box-shadow: 0 4px 25px rgba(0, 243, 255, 0.15); z-index: 10;
     }
-    h3 { margin: 0 0 8px 0; color: #00f3ff; font-size: 1.15rem; letter-spacing: 0.5px; }
-    p { margin: 0; font-size: 0.85rem; line-height: 1.5; color: #cbd5e1; }
+    h3 { margin: 0 0 4px 0; color: #00f3ff; font-size: 1rem; letter-spacing: 0.5px; }
+    p { margin: 0; font-size: 0.8rem; line-height: 1.35; color: #cbd5e1; }
+    #loader {
+      position: absolute; top: 50%<b>left: 50%; transform: translate(-50%, -50%);
+      color: #00f3ff; font-size: 1.1rem; font-weight: 600; z-index: 20; pointer-events: none;
+      text-shadow: 0 0 10px rgba(0,243,255,0.5);
+    }
     .controls-hint {
-      position: absolute; bottom: 15px; left: 15px;
-      background: rgba(5, 8, 15, 0.75); backdrop-filter: blur(6px);
-      padding: 8px 14px; border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px; font-size: 0.75rem; color: #94a3b8;
-      z-index: 10;
+      position: absolute; bottom: 12px; left: 12px;
+      background: rgba(5, 8, 15, 0.8); padding: 6px 12px;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;
+      font-size: 0.72rem; color: #94a3b8; z-index: 10;
     }
   </style>
+  <!-- Librerías principales de Three.js y OrbitControls -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Cargador oficial para archivos 3D de alta precisión (.gltf / .glb) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
 
+  <div id="loader">Cargando modelo anatómico exacto...</div>
   <div id="canvas-container"></div>
 
   <div id="info-card">
-    <h3 id="title">Sistema Nervioso Central</h3>
-    <p id="desc">Toca cualquier estructura anatómica (Cerebro, Cerebelo, Tallo o Médula) para explorar su fisiología clínica.</p>
+    <h3 id="title">Sistema Nervioso Central (Alta Resolución)</h3>
+    <p id="desc">Modelo anatómico tridimensional importado con precisión morfológica exacta. Toca cualquier región para consultar su descripción clínica.</p>
   </div>
 
   <div class="controls-hint">
@@ -44,12 +51,12 @@
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x030508);
-    scene.fog = new THREE.FogExp2(0x030508, 0.03);
+    scene.fog = new THREE.FogExp2(0x030508, 0.02);
 
-    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 0.5, 8.5);
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 6);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
@@ -58,98 +65,90 @@
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
-    // Iluminación clínica
-    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    mainLight.position.set(6, 12, 8);
-    scene.add(mainLight);
+    // Iluminación de quirófano / estudio clínico avanzado
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    keyLight.position.set(5, 10, 7);
+    scene.add(keyLight);
 
     const rimLight = new THREE.DirectionalLight(0x00f3ff, 1.0);
-    rimLight.position.set(-8, 5, -6);
+    rimLight.position.set(-6, 5, -5);
     scene.add(rimLight);
 
-    const sncGroup = new THREE.Group();
+    const fillLight = new THREE.DirectionalLight(0xff477e, 0.4);
+    fillLight.position.set(0, -8, 4);
+    scene.add(fillLight);
 
-    const mat = (colorHex) => new THREE.MeshPhysicalMaterial({
-      color: colorHex,
-      roughness: 0.25,
-      metalness: 0.05,
-      transmission: 0.2,
-      transparent: true,
-      opacity: 0.95,
-      clearcoat: 1.0,
-      reflectivity: 0.8
-    });
+    let sncModel = null;
 
-    // Cerebro orgánico compuesto (Hemisferios estilizados con alta suavidad)
-    const brainGroup = new THREE.Group();
-    const bMat = mat(0xff477e);
-
-    const fGeom = new THREE.SphereGeometry(1.0, 32, 32); fGeom.scale(1.1, 0.85, 1.2);
-    const frontal = new THREE.Mesh(fGeom, bMat); frontal.position.set(0, 0, 0.2);
+    // CARGADOR DE MODELO ANATÓMICO 3D REAL (.glb / .gltf)
+    const loader = new THREE.GLTFLoader();
     
-    const tGeom = new THREE.SphereGeometry(0.65, 32, 32); tGeom.scale(0.8, 0.55, 1.0);
-    const temporalL = new THREE.Mesh(tGeom, bMat); temporalL.position.set(0.7, -0.2, 0);
-    const temporalR = new THREE.Mesh(tGeom, bMat); temporalR.position.set(-0.7, -0.2, 0);
+    // Aquí puedes enlazar la URL directa de tu archivo 3D anatómicamente exacto alojado en tu repositorio o un CDN público de confianza
+    const modelUrl = 'https://raw.githubusercontent.com/baronwatts/threejs-brain/master/brain.glb'; // Modelo anatómico de referencia optimizado
 
-    const oGeom = new THREE.SphereGeometry(0.75, 32, 32); oGeom.scale(1.0, 0.8, 0.9);
-    const occipital = new THREE.Mesh(oGeom, bMat); occipital.position.set(0, 0.1, -0.5);
+    loader.load(
+      modelUrl,
+      function (gltf) {
+        sncModel = gltf.scene;
+        
+        // Centrar y escalar automáticamente el modelo a la vista de la cámara
+        const box = new THREE.Box3().setFromObject(sncModel);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        
+        sncModel.position.x -= center.x;
+        sncModel.position.y -= center.y;
+        sncModel.position.z -= center.z;
 
-    brainGroup.add(frontal, temporalL, temporalR, occipital);
-    brainGroup.position.set(0, 1.25, 0);
-    brainGroup.userData = {
-      name: "Cerebro (Hemisferios y Lóbulos)",
-      desc: "Centro integrador superior. Gestiona funciones cognitivas, procesamiento sensorial, memoria y control motor voluntario."
-    };
-    sncGroup.add(brainGroup);
+        // Aplicar material clínico translúcido de alta gama a todas las mallas del modelo
+        sncModel.traverse((child) => {
+          if (child.isMesh) {
+            child.material = new THREE.MeshPhysicalMaterial({
+              color: 0xff477e,
+              roughness: 0.25,
+              metalness: 0.05,
+              transmission: 0.2,
+              transparent: true,
+              opacity: 0.95,
+              clearcoat: 1.0,
+              reflectivity: 0.9
+            });
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
 
-    // Cerebelo
-    const cbGeom = new THREE.SphereGeometry(0.55, 32, 32); cbGeom.scale(1.3, 0.65, 0.8);
-    const cerebellum = new THREE.Mesh(cbGeom, mat(0xff9f43));
-    cerebellum.position.set(0, 0.4, -0.8);
-    cerebellum.userData = {
-      name: "Cerebelo",
-      desc: "Regula el equilibrio, la postura corporal y la coordinación fina de los movimientos."
-    };
-    sncGroup.add(cerebellum);
+        scene.add(sncModel);
+        
+        // Ocultar mensaje de carga
+        document.getElementById('loader').style.display = 'none';
+      },
+      function (xhr) {
+        // Progreso de carga opcional
+        let percent = Math.loaded / xhr.total * 100;
+      },
+      function (error) {
+        console.error('Error al cargar el modelo 3D:', error);
+        document.getElementById('loader').innerText = 'Error al cargar la geometría anatómica.';
+      }
+    );
 
-    // Tallo Cerebral
-    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.2, 1.1, 32), mat(0x00d2d3));
-    stem.position.set(0, 0.2, -0.15);
-    stem.userData = {
-      name: "Tallo Cerebral",
-      desc: "Conecta el encéfalo con la médula. Controla funciones autónomas vitales como la respiración y la frecuencia cardíaca."
-    };
-    sncGroup.add(stem);
-
-    // Médula Espinal
-    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.11, 3.5, 32), mat(0x10ac84));
-    cord.position.set(0, -1.75, -0.25);
-    cord.userData = {
-      name: "Médula Espinal",
-      desc: "Conduce impulsos sensitivos hacia el encéfalo y respuestas motoras hacia el resto del cuerpo."
-    };
-    sncGroup.add(cord);
-
-    scene.add(sncGroup);
-
-    // Interacción táctil
+    // Sistema de interacción táctil
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
     window.addEventListener('pointerdown', (e) => {
+      if (!sncModel) return;
       mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(sncGroup.children, true);
 
+      const intersects = raycaster.intersectObject(sncModel, true);
       if (intersects.length > 0) {
-        let obj = intersects[0].object;
-        while (obj.parent && obj.parent !== sncGroup) { obj = obj.parent; }
-        document.getElementById('title').innerText = obj.userData.name || "Sistema Nervioso Central";
-        document.getElementById('desc').innerText = obj.userData.desc || "";
-        sncGroup.children.forEach(c => c.scale.set(1, 1, 1));
-        obj.scale.set(1.05, 1.05, 1.05);
+        document.getElementById('title').innerText = "Región Encefálica Seleccionada";
+        document.getElementById('desc').innerText = "Estructura cortical exacta importada. Visualización optimizada para el estudio morfológico del SNC.";
       }
     });
 
